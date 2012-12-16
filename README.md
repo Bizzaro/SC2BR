@@ -29,4 +29,4 @@ Minutes | Seconds | Event
     
 3. After you've entered your build, it can be saved via the save button on the toolbar. (in a simple .csv format)
 4. You can load your own, or others, saved builds using the open button on the toolbar.
-5. Press the play button the moment the game loads and begin playing normally.
+5. Press F12 (or the play button) the moment the game loads and begin playing normally.
