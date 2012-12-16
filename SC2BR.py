@@ -8,6 +8,13 @@ import time
 import urllib2
 import pygame
 import atexit
+import pythoncom, pyHook
+
+
+
+
+
+
 
 FREQ = 44100    # same as audio CD
 BITSIZE = -16   # unsigned 16 bit
@@ -19,6 +26,25 @@ FRAMERATE = 30  # how often to check if playback has finished
 class TestFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, title="SC2 Build Reader")
+
+        pygame.mixer.pre_init(16000,-16,2,2048)
+        pygame.init()
+
+        def OnKeyboardEvent(event):
+            if event.KeyID == 123:
+                #print('F12')
+                self.onPlay(self)
+            # return True to pass the event to other handlers
+            return True
+
+        # create a hook manager
+        hm = pyHook.HookManager()
+        # watch for all mouse events
+        hm.KeyDown = OnKeyboardEvent
+        # set the hook
+        hm.HookKeyboard()
+        # wait forever
+        #pythoncom.PumpMessages()
 
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
 #TOOLBAR---------------------------------------------------------------------------------------------------------------
@@ -46,7 +72,7 @@ class TestFrame(wx.Frame):
         play_icon = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, wx.ART_TOOLBAR, (16,16))
         self.playTool = self.toolbar.AddSimpleTool(wx.ID_ANY, play_icon, "Play", "Plays current build")
         self.Bind(wx.EVT_MENU, self.onPlay, self.playTool)
-        self.Bind(wx.EVT_CHAR_HOOK,self.onKeyPress)
+        #self.Bind(wx.EVT_CHAR_HOOK,self.onPlay)
 
         #stop_icon = wx.ArtProvider.GetBitmap(wx.ART_ERROR, wx.ART_TOOLBAR, (16,16))
         #self.stopTool = self.toolbar.AddSimpleTool(wx.ID_ANY, stop_icon, "Stop", "Stops current build")
@@ -158,8 +184,6 @@ class TestFrame(wx.Frame):
 
         #print(self.timeMatrix)
 
-        pygame.mixer.pre_init(16000,-16,2,2048)
-
         try:
             time.sleep(float(self.timeMatrix[0][0]))
             text = self.timeMatrix[0][1]
@@ -178,7 +202,7 @@ class TestFrame(wx.Frame):
                 ofp.write(response.read())
             clip = os.path.abspath(str('0')+'speech_google.mp3')
 
-            pygame.init()
+            #pygame.init()
             pygame.mixer.music.load(clip)
             pygame.mixer.music.play()
 
@@ -210,8 +234,7 @@ class TestFrame(wx.Frame):
                         ofp.write(response.read())
                     clip = os.path.abspath(str(row)+'speech_google.mp3')
 
-                    pygame.init()
-                    pygame.mixer.music.set_endevent()
+                    #pygame.init()
                     pygame.mixer.music.load(clip)
                     pygame.mixer.music.play()
 
@@ -221,6 +244,7 @@ class TestFrame(wx.Frame):
                     pass
 
         pygame.mixer.quit()
+        #print('end of onPlay!')
         filelist = [ f for f in os.listdir(".") if f.endswith(".mp3") ]
         for f in filelist:
             os.remove(f)
@@ -260,11 +284,11 @@ class TestFrame(wx.Frame):
         else:
             self.statusbar.SetStatusText('')
 
-    def onKeyPress(self,evt):
-        if evt.GetKeyCode() == wx.WXK_F12:
-            self.onPlay(self)
-        else:
-            evt.Skip()
+    #def onKeyPress(self,evt):
+    #    if evt.GetKeyCode() == wx.WXK_F12:
+    #        self.onPlay(self)
+    #    else:
+    #        evt.Skip()
 
 def onQuit():
     pygame.mixer.quit()
