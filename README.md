@@ -3,6 +3,15 @@ SC2BR
 
 Starcraft 2 Build Reader
 
+Dependencies:
+======
+Currently only tested on Windows using 32-bit Python 2.7.
+May function with other versions of Python or other operating systems, but currently untested.
+
+External Libraries
+======
+wxPython, pyGame
+
 How-to:
 ======
 1. Run SC2BR.exe - the GUI should appear
