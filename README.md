@@ -2,6 +2,7 @@ SC2BR
 =====
 
 Starcraft 2 Build Reader
+Download link: https://sourceforge.net/projects/sc2br/
 
 Dependencies:
 ======
