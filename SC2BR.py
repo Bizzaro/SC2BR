@@ -11,11 +11,6 @@ import atexit
 import pythoncom, pyHook
 
 
-
-
-
-
-
 FREQ = 44100    # same as audio CD
 BITSIZE = -16   # unsigned 16 bit
 CHANNELS = 1    # 1 == mono, 2 == stereo
@@ -23,18 +18,17 @@ BUFFER = 1024   # audi buffer size in no. of samples
 FRAMERATE = 30  # how often to check if playback has finished
 
 
+pygame.mixer.pre_init(16000,-16,2,2048)
+pygame.init()
+
 class TestFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, title="SC2 Build Reader")
 
-        pygame.mixer.pre_init(16000,-16,2,2048)
-        pygame.init()
-
         def OnKeyboardEvent(event):
             if event.KeyID == 123:
-                #print('F12')
-                self.onPlay(self)
-            # return True to pass the event to other handlers
+                self.onPlay(True)
+                # return True to pass the event to other handlers
             return True
 
         # create a hook manager
@@ -47,7 +41,7 @@ class TestFrame(wx.Frame):
         #pythoncom.PumpMessages()
 
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-#TOOLBAR---------------------------------------------------------------------------------------------------------------
+        #TOOLBAR---------------------------------------------------------------------------------------------------------------
         self.toolbar = self.CreateToolBar()
         self.toolbar.SetToolBitmapSize((16,16))
 
@@ -80,10 +74,10 @@ class TestFrame(wx.Frame):
 
         self.toolbar.Realize()
 
-#STATUSBAR-------------------------------------------------------------------------------------------------------------
+        #STATUSBAR-------------------------------------------------------------------------------------------------------------
         self.statusbar = self.CreateStatusBar()
 
-#GRID------------------------------------------------------------------------------------------------------------------
+        #GRID------------------------------------------------------------------------------------------------------------------
         self.grid = wx.grid.Grid(self)
         self.grid.CreateGrid(30,3)
         self.grid.SetRowLabelSize(30)
@@ -113,7 +107,7 @@ class TestFrame(wx.Frame):
         self.openedFile = None
         self.dirname = None
         self.newFile = None
-#DEFINITIONS-----------------------------------------------------------------------------------------------------------
+    #DEFINITIONS-----------------------------------------------------------------------------------------------------------
     def onNew(self, evt):
         self.openedFile = None
         self.matrix = [[0 for x in xrange(3)] for x in xrange(30)]
@@ -174,6 +168,9 @@ class TestFrame(wx.Frame):
 
     def onPlay(self,evt):
 
+        #pygame.mixer.pre_init(16000,-16,2,2048)
+        #pygame.init()
+
         rows = range(30)
         for row in rows:
             try:
@@ -214,40 +211,31 @@ class TestFrame(wx.Frame):
 
         rows = range(1,30)
         for row in rows:
-                try:
-                    time.sleep(float(self.timeMatrix[row][0])- float(self.timeMatrix[row-1][0]))
-                    text = self.timeMatrix[row][1]
+            try:
+                time.sleep(float(self.timeMatrix[row][0])- float(self.timeMatrix[row-1][0]))
+                text = self.timeMatrix[row][1]
+
+                if len(text) >= 100:
+                    text = text[:100]
+
+                google_translate_url = 'http://translate.google.com/translate_tts'
+                opener = urllib2.build_opener()
+                opener.addheaders = [('User-agent', 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)')]
 
 
-                    if len(text) >= 100:
-                        text = text[:100]
+                response = opener.open(google_translate_url+'?q='+text.replace(' ','%20')+'&tl=en')
+                with open(str(row)+'speech_google.mp3','wb') as ofp:
+                    ofp.write(response.read())
+                clip = os.path.abspath(str(row)+'speech_google.mp3')
 
+                #pygame.init()
+                pygame.mixer.music.load(clip)
+                pygame.mixer.music.play()
 
-
-                    google_translate_url = 'http://translate.google.com/translate_tts'
-                    opener = urllib2.build_opener()
-                    opener.addheaders = [('User-agent', 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)')]
-
-
-                    response = opener.open(google_translate_url+'?q='+text.replace(' ','%20')+'&tl=en')
-                    with open(str(row)+'speech_google.mp3','wb') as ofp:
-                        ofp.write(response.read())
-                    clip = os.path.abspath(str(row)+'speech_google.mp3')
-
-                    #pygame.init()
-                    pygame.mixer.music.load(clip)
-                    pygame.mixer.music.play()
-
-                    while pygame.mixer.music.get_busy():
-                        pygame.time.Clock().tick(10)
-                except ValueError:
-                    pass
-
-        pygame.mixer.quit()
-        #print('end of onPlay!')
-        filelist = [ f for f in os.listdir(".") if f.endswith(".mp3") ]
-        for f in filelist:
-            os.remove(f)
+                while pygame.mixer.music.get_busy():
+                    pygame.time.Clock().tick(10)
+            except ValueError:
+                pass
 
     def onClear(self, evt):
         self.grid.ClearGrid()
@@ -284,11 +272,11 @@ class TestFrame(wx.Frame):
         else:
             self.statusbar.SetStatusText('')
 
-    #def onKeyPress(self,evt):
-    #    if evt.GetKeyCode() == wx.WXK_F12:
-    #        self.onPlay(self)
-    #    else:
-    #        evt.Skip()
+            #def onKeyPress(self,evt):
+            #    if evt.GetKeyCode() == wx.WXK_F12:
+            #        self.onPlay(self)
+            #    else:
+            #        evt.Skip()
 
 def onQuit():
     pygame.mixer.quit()
